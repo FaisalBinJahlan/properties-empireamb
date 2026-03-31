@@ -2,7 +2,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, Locale } from "@/i18n/routing";
-import { Inter, Outfit, Noto_Sans_Arabic } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -20,12 +20,7 @@ const outfit = Outfit({
   display: "swap",
 });
 
-const notoArabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-noto-arabic",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
-});
+
 
 export const metadata = {
   title: "AMP Empire — Global Investment Advisory & Premium Real Estate",
@@ -53,28 +48,18 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const messages = await getMessages();
-  const dir = locale === "ar" ? "rtl" : "ltr";
-  const isArabic = locale === "ar";
-
   return (
     <html
       lang={locale}
-      dir={dir}
-      className={`${inter.variable} ${outfit.variable} ${notoArabic.variable}`}
+      dir="ltr"
+      className={`${inter.variable} ${outfit.variable}`}
       suppressHydrationWarning
     >
       <head>
         <meta name="theme-color" content="#0D0D0D" />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body
-        className={`antialiased ${isArabic ? "font-[var(--font-noto-arabic)]" : "font-[var(--font-inter)]"}`}
-        style={{
-          fontFamily: isArabic
-            ? "var(--font-noto-arabic), sans-serif"
-            : "var(--font-inter), sans-serif",
-        }}
-      >
+      <body className="antialiased font-[var(--font-inter)]">
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main>{children}</main>

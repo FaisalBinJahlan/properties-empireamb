@@ -8,8 +8,8 @@ import { useLocale } from "next-intl";
 import { Locale } from "@/i18n/routing";
 
 const localeLabels: Record<Locale, { label: string; flag: string }> = {
-  en: { label: "English", flag: "🇬🇧" },
   pl: { label: "Polski", flag: "🇵🇱" },
+  en: { label: "English", flag: "🇬🇧" },
 };
 
 export default function LanguageSwitcher() {

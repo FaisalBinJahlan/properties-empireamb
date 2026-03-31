@@ -15,8 +15,18 @@ export default function Hero() {
     >
       {/* Background Layers */}
       <div className="absolute inset-0">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950 via-charcoal-900 to-charcoal-800" />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/video1.mp4" type="video/mp4" />
+        </video>
+
+        {/* Base gradient / Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950/80 via-charcoal-950/70 to-charcoal-900/60" />
 
         {/* Geometric accent shapes */}
         <div className="absolute top-0 end-0 w-[600px] h-[600px] bg-gradient-to-bl from-gold-500/5 to-transparent rounded-full blur-3xl" />
