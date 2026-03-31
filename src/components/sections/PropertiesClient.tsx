@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
-import { Building2, ArrowRight, Filter, SortAsc } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Building2, ArrowRight, Filter, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
 import PropertyCard from "@/components/ui/PropertyCard";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { Property } from "@/lib/types";
@@ -18,6 +18,8 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
   const [filterCountry, setFilterCountry] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [sortOption, setSortOption] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
   const countries = useMemo(() => {
     return Array.from(new Set(properties.map((p) => p.country).filter(Boolean)));
@@ -49,6 +51,29 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
     return result;
   }, [properties, filterCountry, filterType, sortOption]);
 
+  const totalPages = Math.ceil(filteredAndSorted.length / itemsPerPage);
+  const paginatedProperties = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAndSorted.slice(start, start + itemsPerPage);
+  }, [filteredAndSorted, currentPage]);
+
+  const handleFilterChange = (setter: (val: string) => void, value: string) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
+  const scrollToTop = () => {
+    const element = document.getElementById("properties");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    setTimeout(scrollToTop, 100);
+  };
+
   return (
     <section id="properties" className="section-padding relative overflow-hidden">
       {/* Background Accent */}
@@ -76,7 +101,7 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
                   <select
                     className="w-full bg-charcoal-900/50 border border-charcoal-700 text-charcoal-300 rounded-xl px-4 py-3 focus:outline-none focus:border-gold-500/50 appearance-none font-medium"
                     value={filterCountry}
-                    onChange={(e) => setFilterCountry(e.target.value)}
+                    onChange={(e) => handleFilterChange(setFilterCountry, e.target.value)}
                   >
                     <option value="all">All Countries</option>
                     {countries.map((c) => (
@@ -87,7 +112,7 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
                   <select
                     className="w-full bg-charcoal-900/50 border border-charcoal-700 text-charcoal-300 rounded-xl px-4 py-3 focus:outline-none focus:border-gold-500/50 appearance-none font-medium"
                     value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
+                    onChange={(e) => handleFilterChange(setFilterType, e.target.value)}
                   >
                     <option value="all">All Property Types</option>
                     {types.map((type) => (
@@ -98,7 +123,7 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
                   <select
                     className="w-full bg-charcoal-900/50 border border-charcoal-700 text-charcoal-300 rounded-xl px-4 py-3 focus:outline-none focus:border-gold-500/50 appearance-none font-medium"
                     value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
+                    onChange={(e) => handleFilterChange(setSortOption, e.target.value)}
                   >
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
@@ -110,22 +135,82 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
             </div>
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSorted.length > 0 ? (
-                filteredAndSorted.map((property, index) => (
-                  <PropertyCard
-                    key={property.id}
-                    property={property}
-                    index={index}
-                  />
-                ))
-              ) : (
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-20 glass rounded-2xl border border-charcoal-800">
-                  <p className="text-xl text-charcoal-400 font-heading">No properties found matching your criteria.</p>
-                  <button onClick={() => {setFilterCountry('all'); setFilterType('all');}} className="mt-4 text-gold-500 hover:text-gold-400 transition-colors uppercase tracking-widest text-sm font-semibold">Clear Filters</button>
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[400px]">
+              <AnimatePresence mode="wait">
+                {paginatedProperties.length > 0 ? (
+                  <motion.div 
+                    key={currentPage}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  >
+                    {paginatedProperties.map((property, index) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        index={index}
+                      />
+                    ))}
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-20 glass rounded-2xl border border-charcoal-800"
+                  >
+                    <p className="text-xl text-charcoal-400 font-heading">No properties found matching your criteria.</p>
+                    <button onClick={() => {setFilterCountry('all'); setFilterType('all'); setCurrentPage(1);}} className="mt-4 text-gold-500 hover:text-gold-400 transition-colors uppercase tracking-widest text-sm font-semibold">Clear Filters</button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-16 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-3 rounded-xl border border-charcoal-700/50 text-charcoal-400 hover:text-gold-500 hover:border-gold-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-2 mx-4">
+                  {[...Array(totalPages)].map((_, i) => {
+                    const page = i + 1;
+                    // Show only first, last, and relative pages for brevity
+                    if (totalPages > 7 && page !== 1 && page !== totalPages && Math.abs(page - currentPage) > 1) {
+                      if (Math.abs(page - currentPage) === 2) return <span key={page} className="text-charcoal-600">...</span>;
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`w-10 h-10 rounded-xl font-heading font-bold text-sm transition-all ${
+                          currentPage === page
+                            ? "bg-gold-500 text-charcoal-900 shadow-lg shadow-gold-500/20"
+                            : "bg-charcoal-800/40 text-charcoal-400 hover:text-gold-500 hover:border-gold-500/30 border border-charcoal-700/30"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-3 rounded-xl border border-charcoal-700/50 text-charcoal-400 hover:text-gold-500 hover:border-gold-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </>
         ) : (
           /* Elegant placeholder when no feed configured */

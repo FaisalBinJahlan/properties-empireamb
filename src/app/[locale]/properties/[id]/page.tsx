@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPropertyById, getProperties } from "@/lib/properties";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { ArrowLeft, MapPin, Calendar, Layers, Bed, Bath, Expand, MessageCircle, Key, Share2, Save, Heart, Scale } from "lucide-react";
 
@@ -18,7 +19,7 @@ interface PropertyPageProps {
 
 export async function generateStaticParams() {
   const properties = await getProperties();
-  const locales = ["en", "pl", "ar"];
+  const locales = routing.locales;
 
   return locales.flatMap((locale) =>
     properties.map((p) => ({
